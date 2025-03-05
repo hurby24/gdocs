@@ -1,0 +1,51 @@
+---
+title: Tunnel
+---
+
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+
+## Installation for Ubuntu(debian)
+
+1. Add Cloudflare's package signing key:
+
+```bash title="bash"
+sudo mkdir -p --mode=0755 /usr/share/keyrings
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+```
+2. Add Cloudflare's apt repo to your apt repositories:
+
+```bash title="bash"
+echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
+```
+3. Update repositories and install cloudflared:
+
+```bash title="bash"
+sudo apt-get update && sudo apt-get install cloudflared
+```
+## Authenticate cloudflared
+
+1. Login:
+
+```bash title="bash"
+cloudflared tunnel login
+```
+ - Using given link login `Cloudflare` account, which tunnel will be connected via browser.
+
+2. Create a tunnel and give it a name
+
+```bash title="bash"
+cloudflared tunnel login
+```
+The file structure will be like this:
+
+<Files>
+  <Folder name="home" defaultOpen>
+    <Folder name="$user" defaultOpen>
+        <Folder name=".cloudflared" defaultOpen>
+        <File name="[tunnel_id].json"/>
+        <File name="cert.pem"/>
+        <File name="config.yml"/>
+        </Folder>
+    </Folder>
+  </Folder>
+</Files>
