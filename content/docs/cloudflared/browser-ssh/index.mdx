@@ -1,0 +1,48 @@
+---
+title: Browser SSH
+description: Rendering an SSH terminal in the browser via Cloudflare Tunnel and Application.
+---
+
+<Callout>This setup requires a running Cloudflare Tunnel instance.</Callout>
+
+## Pre-Setup: Configuring SSH in Cloudflare Tunnel
+
+Before adding the application, we need to configure the Cloudflare Tunnel to allow SSH access.
+
+1. **Edit your Cloudflare Tunnel configuration file** (typically `config.yml`):
+
+   ```yaml title="config.yml"
+   tunnel: <your-tunnel-id>
+   credentials-file: /path/to/<your-tunnel-id>.json
+
+   ingress:
+     - hostname: ssh.example.com
+       service: ssh://localhost:22
+     - service: http_status:404
+   ```
+
+   Replace `<your-tunnel-id>` with your actual Cloudflare Tunnel ID and `ssh.example.com` with your desired SSH subdomain.
+
+   <Callout>
+     {" "}
+     Don't forget to restart the Cloudflare Tunnel after editing the configuration
+     file and add the CNAME record in your DNS provider to ensure proper connectivity.
+   </Callout>
+
+## Adding an Application
+
+To enable SSH access via the browser, we need to configure an application in Cloudflare Zero Trust.
+
+1. **Navigate to the Cloudflare Dashboard:**
+   - Go to **Zero Trust** > **Access** > **Applications**.
+2. **Add a new application:**
+
+   - Click on **Add an application**.
+   - In the configuration settings, specify the **hostname** (the subdomain where your tunnel points to SSH).
+   - Configure access **policies** if needed.
+
+3. **Enable Browser SSH Rendering:**
+   - Under **Advanced Settings**, enable **Browser Rendering**.
+   - Choose **SSH** as the application type.
+
+Once configured, users can securely access the SSH terminal directly from their browser using Cloudflare's authentication and access control mechanisms.
