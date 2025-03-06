@@ -17,7 +17,7 @@ Before adding the application, we need to configure the Cloudflare Tunnel to all
 
    ingress:
      - hostname: ssh.example.com
-       service: ssh://localhost:22
+       service: tcp://localhost:22
      - service: http_status:404
    ```
 

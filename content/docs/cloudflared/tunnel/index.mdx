@@ -1,51 +1,150 @@
 ---
 title: Tunnel
+description: Tunneling your local services to the internet using Cloudflare Tunnel.
 ---
 
-import { File, Folder, Files } from 'fumadocs-ui/components/files';
+import { File, Folder, Files } from "fumadocs-ui/components/files";
 
-## Installation for Ubuntu(debian)
+## Installation for Ubuntu/Debian
 
 1. Add Cloudflare's package signing key:
 
-```bash title="bash"
-sudo mkdir -p --mode=0755 /usr/share/keyrings
-curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-```
+   ```bash title="bash"
+   sudo mkdir -p --mode=0755 /usr/share/keyrings
+   curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+   ```
+
 2. Add Cloudflare's apt repo to your apt repositories:
 
-```bash title="bash"
-echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
-```
+   ```bash title="bash"
+   echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main" | sudo tee /etc/apt/sources.list.d/cloudflared.list
+   ```
+
 3. Update repositories and install cloudflared:
 
-```bash title="bash"
-sudo apt-get update && sudo apt-get install cloudflared
-```
+   ```bash title="bash"
+   sudo apt-get update && sudo apt-get install cloudflared
+   ```
+
 ## Authenticate cloudflared
 
 1. Login:
 
-```bash title="bash"
-cloudflared tunnel login
-```
- - Using given link login `Cloudflare` account, which tunnel will be connected via browser.
+   ```bash title="bash"
+   cloudflared tunnel login
+   ```
+
+   - Using given link login `Cloudflare` account, which tunnel will be connected via browser.
 
 2. Create a tunnel and give it a name
 
-```bash title="bash"
-cloudflared tunnel login
-```
-The file structure will be like this:
+   ```bash title="bash"
+   cloudflared tunnel login
+   ```
 
-<Files>
-  <Folder name="home" defaultOpen>
-    <Folder name="$user" defaultOpen>
-        <Folder name=".cloudflared" defaultOpen>
-        <File name="[tunnel_id].json"/>
-        <File name="cert.pem"/>
-        <File name="config.yml"/>
-        </Folder>
-    </Folder>
-  </Folder>
-</Files>
+## Tunnel configuration
+
+1. Editing `config.yml` file:
+
+   Configuration file located in following path: `/home/$user/.cloudflared/config.yml`
+
+   <Files>
+     <Folder name="home" defaultOpen>
+       <Folder name="$user" defaultOpen>
+         <Folder name=".cloudflared" defaultOpen>
+           <File name="[tunnel_id].json" />
+           <File name="cert.pem" />
+           <File name="config.yml" />
+         </Folder>
+       </Folder>
+     </Folder>
+   </Files>
+
+   Example `config.yml` content:
+
+   ```yml title="config.yml"
+   tunnel: <tunnel_id>
+   credentials-file: /home/$user/.cloudflared/<tunnel_id>.json
+
+   ingress:
+     - hostname: file.yourdomain.net
+       service: http://localhost:3000
+
+     - hostname: ssh.yourdomain.net
+       service: tcp://localhost:22
+
+     - service: http_status:404
+   ```
+
+2. Adding record:
+
+   After editing configuration file you need to add record to your domian in cloudflare: `DNS` > `Records`
+
+   Example record fonfiguration:
+   | Type | Name | Target |
+   |------|------|--------|
+   |CNAME | yourdomain | tunnel_id.cfargotunnel.com |
+   |CNAME | subdomain | tunnel_id.cfargotunnel.com |
+
+## Running the tunnel
+
+1. Manually running
+
+   To run latest tunnel:
+
+   ```bash title="bash"
+   cloudflared tunnel run
+   ```
+
+   To run the tunnel with given name or UUID
+
+   ```bash title="bash"
+   cloudflared tunnel run <UUID or NAME>
+   ```
+
+2. Run via service
+
+   Install `cloudflared` service:
+
+   ```bash title="bash"
+   cloudflared service install
+   ```
+
+   Start service:
+
+   ```bash title="bash"
+   systemctl start cloudflared
+   ```
+
+   Example `cloudflared.service` content:
+
+   ```ini title="cloudflared.service"
+   [Unit]
+   Description=cloudflared
+   After=network-online.target
+   Wants=network-online.target
+
+   [Service]
+   TimeoutStartSec=0
+   Type=notify
+   ExecStart=/usr/bin/cloudflared --no-autoupdate --config home/$user/.cloudflared/config.yml tunnel run
+   Restart=on-failure
+   RestartSec=5s
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   <Callout>You can change config file path according to yours</Callout>
+
+   Restart the service:
+
+   ```bash title="bash"
+   systemctl restart cloudflared
+   ```
+
+   Check service status:
+
+   ```bash title="bash"
+   systemctl status cloudflared
+   ```
